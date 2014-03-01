@@ -28,8 +28,7 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int add=0x7f090004;
-        public static final int delete=0x7f090003;
+        public static final int add=0x7f090003;
         public static final int taskInputField=0x7f090000;
         public static final int taskTextView=0x7f090002;
         public static final int tasksListView=0x7f090001;
@@ -39,13 +38,12 @@ public final class R {
         public static final int list_view_task_row=0x7f030001;
     }
     public static final class menu {
-        public static final int context_menu=0x7f080000;
-        public static final int options_menu=0x7f080001;
+        public static final int options_menu=0x7f080000;
     }
     public static final class string {
         public static final int app_name=0x7f060000;
+        public static final int dialog_delete=0x7f060003;
         public static final int menu_add=0x7f060001;
-        public static final int menu_delete=0x7f060003;
         public static final int task_input_field_hint=0x7f060002;
     }
     public static final class style {

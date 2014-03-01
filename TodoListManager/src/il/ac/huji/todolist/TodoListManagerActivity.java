@@ -1,17 +1,17 @@
 
-
 package il.ac.huji.todolist;
 
 import java.util.ArrayList;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
 
@@ -21,7 +21,7 @@ import android.widget.ListView;
  * @author Tzafrir Harazy
  * HUJI 2014 - PostPC.
  */
-public class TodoListManagerActivity extends Activity {
+public class TodoListManagerActivity extends Activity implements OnItemLongClickListener {
 	
 	private ArrayList<String> tasks;
 	private ListView tasksListView;
@@ -39,7 +39,7 @@ public class TodoListManagerActivity extends Activity {
 		this.adapter = new TasksArrayAdapter(this, R.layout.list_view_task_row, this.tasks);
 		
 		this.tasksListView.setAdapter(this.adapter);
-		registerForContextMenu(this.tasksListView);
+		this.tasksListView.setOnItemLongClickListener(this);
 	}
 
 	@Override
@@ -58,26 +58,22 @@ public class TodoListManagerActivity extends Activity {
 			return super.onOptionsItemSelected(item);
 		}
 	}
-
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-	    super.onCreateContextMenu(menu, v, menuInfo);
-	    AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-	    menu.setHeaderTitle(this.tasks.get(info.position));
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.context_menu, menu);
-	}
 	
 	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-	    AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-	    if (item.getItemId() == R.id.delete) {
-	    	removeTask(info.position);
-	    	return true;
-	    }
-	    else {
-	    	return super.onContextItemSelected(item);
-	    }
+	public boolean onItemLongClick(AdapterView<?> adapterView, View v, final int pos, long id) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(this.tasks.get(pos));
+		builder.setPositiveButton(R.string.dialog_delete, new OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				removeTask(pos);
+			}
+		});
+		
+		AlertDialog dialog = builder.create();
+		dialog.show();
+		return false;
 	}
 	
 	/**
