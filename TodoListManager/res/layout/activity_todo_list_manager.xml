@@ -4,18 +4,8 @@
     android:orientation="vertical"
     android:padding="16dp" >
 
-    <EditText
-        android:id="@+id/taskInputField"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:hint="@string/task_input_field_hint" >
-
-        <requestFocus />
-    </EditText>
-
     <ListView
-        android:id="@+id/tasksListView"
+        android:id="@+id/lstTodoItems"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
     </ListView>
