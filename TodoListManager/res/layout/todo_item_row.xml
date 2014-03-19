@@ -9,7 +9,7 @@
     	android:id="@+id/txtTodoTitle"
         android:layout_width="0dp"
         android:layout_height="fill_parent"
-        android:layout_weight="1"
+        android:layout_weight="2"
         android:gravity="left|center_horizontal"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 	
