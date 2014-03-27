@@ -1,7 +1,8 @@
 
 package il.ac.huji.todolist;
 
-import java.util.Date;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -65,11 +66,10 @@ public class AddNewTodoItemActivity extends Activity {
 	 * Gets the data for creating a new todo item from the user.
 	 */
 	private void getNewItem() {
-		String title = this.edtNewItem.getText().toString().trim();		
-		@SuppressWarnings("deprecation")
-		Date dueDate = new Date(this.datePicker.getYear() - 1900, this.datePicker.getMonth(), 
-														this.datePicker.getDayOfMonth());
-		sendData(title, dueDate);
+		String title = this.edtNewItem.getText().toString().trim();
+		Calendar cal = new GregorianCalendar(this.datePicker.getYear(), 
+				this.datePicker.getMonth(), this.datePicker.getDayOfMonth());
+		sendData(title, cal.getTimeInMillis());
 	}
 	
 	/**
@@ -77,7 +77,7 @@ public class AddNewTodoItemActivity extends Activity {
 	 * @param title - the todo item's title to send.
 	 * @param dueDate - the todo item's due date to send.
 	 */
-	private void sendData(String title, Date dueDate) {
+	private void sendData(String title, long dueDate) {
 		Intent result = new Intent();
 		result.putExtra("title", title);
 		result.putExtra("dueDate", dueDate);
