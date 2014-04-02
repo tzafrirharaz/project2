@@ -43,7 +43,7 @@ public class TodoCursorAdapter extends ResourceCursorAdapter {
 	 */
 	private void setTextColor(TextView titleView, TextView dateView, Date dueDate) {
 		int color = android.graphics.Color.BLACK;
-		if (getDate(dueDate).compareTo(getDate(new Date())) < 0) {
+		if (dueDate.before(new Date())) {
 			color = android.graphics.Color.RED;
 		}
 		titleView.setTextColor(color);
