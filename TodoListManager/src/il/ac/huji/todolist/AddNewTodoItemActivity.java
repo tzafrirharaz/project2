@@ -32,6 +32,7 @@ public class AddNewTodoItemActivity extends Activity {
 		this.btnOK = (Button) findViewById(R.id.btnOK);
 		
 		setButtonListeners();
+		
 	}
 	
 	@Override

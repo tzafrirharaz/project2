@@ -1,10 +1,14 @@
 
 package il.ac.huji.todolist;
 
+import java.util.ArrayList;
+import java.util.Date;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -23,12 +27,12 @@ import android.widget.ListView;
  */
 public class TodoListManagerActivity extends Activity {
 	
-	private static final int ADD_TODO_ITEM_REQUEST = 1;
-	private static final String DIAL_INTENT_PREFIX = "Call ";
+	private static final int ADD_TODO_ITEM_REQUEST = 10;
 
 	private ListView lstTodoItems;
 	private DBController dbController;
-	private TodoCursorAdapter adapter;
+	private TodoArrayAdapter adapter;
+	private ArrayList<TodoItem> todoItems;
 
 	
 	@Override
@@ -39,31 +43,26 @@ public class TodoListManagerActivity extends Activity {
 		this.lstTodoItems = (ListView) findViewById(R.id.lstTodoItems);
 		this.dbController = new DBController(getApplicationContext());
 		this.dbController.open();
-				
-		setAdapter();
-		
+		this.todoItems = new ArrayList<TodoItem>();
+		this.adapter = new TodoArrayAdapter(getApplicationContext(), R.layout.todo_item_row, 
+				this.todoItems);
+		this.lstTodoItems.setAdapter(this.adapter);
+			
 		registerForContextMenu(this.lstTodoItems);
 		
+		new TodoAsyncTask().execute();
 	}
 	
 	@Override
 	public void onDestroy() {
 		this.dbController.close();
-	}
-	
-	/**
-	 * Sets a CursorAdapter for the ListView.
-	 */
-	private void setAdapter() {
-		Cursor cursor = this.dbController.getData();
-		this.adapter = new TodoCursorAdapter(getApplicationContext(), R.layout.todo_item_row, 
-				cursor, true);		
-		this.lstTodoItems.setAdapter(this.adapter);		
+		super.onDestroy();
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.options_menu, menu);
+		//s
 		return true;
 	}
 	
@@ -94,12 +93,12 @@ public class TodoListManagerActivity extends Activity {
 		getMenuInflater().inflate(R.menu.context_menu, menu);
 		
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		String title = this.dbController.getAttribute(info.id, TodoListSQLiteHelper.COLUMN_TITLE);
-		menu.setHeaderTitle(title);
+		TodoItem item = this.todoItems.get(info.position);
+		menu.setHeaderTitle(item.getTitle());
 		
-		if (hasDialIntent(title)) {
+		if (item.hasDialIntent()) {
 			menu.findItem(R.id.menuItemCall).setVisible(true);
-			menu.findItem(R.id.menuItemCall).setTitle(title);
+			menu.findItem(R.id.menuItemCall).setTitle(item.getTitle());
 		}
 	}
 	
@@ -108,10 +107,10 @@ public class TodoListManagerActivity extends Activity {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 		switch (item.getItemId()) {
         case R.id.menuItemDelete:
-        	removeTodo(info.id);
+        	removeTodo(info.position);
             return true;
         case R.id.menuItemCall:
-        	initiateDialer(info.id);
+        	initiateDialer(info.position);
         	return true;
         default:
             return super.onContextItemSelected(item);
@@ -122,8 +121,9 @@ public class TodoListManagerActivity extends Activity {
 	 * Starts a dial activity, with number according to the todo item in the given position.
 	 * @param id - the id of the todo item in the database.
 	 */
-	private void initiateDialer(long id) {
-		Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse(this.dbController.getTelNum(id)));
+	private void initiateDialer(int pos) {
+		Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse(
+				this.todoItems.get(pos).getTelNum()));
 		startActivity(dial);
 	}
 
@@ -134,29 +134,45 @@ public class TodoListManagerActivity extends Activity {
 	private void addNewTodo(Intent data) {
 		String title = data.getStringExtra("title");
 		long dueDate = data.getLongExtra("dueDate", System.currentTimeMillis());
-		this.dbController.addData(title, dueDate);
-		setAdapter();		
+		long id = this.dbController.addData(title, dueDate);
+		this.todoItems.add(new TodoItem(id, title, new Date(dueDate)));
+		this.adapter.notifyDataSetChanged();
 	}
 	
 	/**
 	 * Removes an existing task from the Todo list.
 	 * @param id - the id of the task in the database.
 	 */
-	private void removeTodo(long id) {
-		this.dbController.removeData(id);
-		setAdapter();
+	private void removeTodo(int pos) {
+		this.dbController.removeData(this.todoItems.get(pos).getId());
+		this.todoItems.remove(pos);
+		this.adapter.notifyDataSetChanged();
 	}
 	
-	/**
-	 * Returns true if the todo item with the given title has a dial intent, and false otherwise.
-	 * @param title - the title of the todo item.
-	 * @return true if the todo item with the given title has a dial intent, and false otherwise.
-	 */
-	private boolean hasDialIntent(String title) {
-		if (title.startsWith(DIAL_INTENT_PREFIX)) {
-			return true;
+	private class TodoAsyncTask extends AsyncTask<Void, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			Cursor cursor = TodoListManagerActivity.this.dbController.getData();
+			int counter = 0;
+			while (cursor.moveToNext()) {
+				TodoItem item = new TodoItem(cursor.getLong(0), cursor.getString(1), 
+						new Date(cursor.getLong(2)));
+				TodoListManagerActivity.this.todoItems.add(item);
+				if (counter % 5 == 0) {
+					publishProgress();
+				}
+				counter++;
+			}
+			publishProgress();
+			return null; 
 		}
-		return false;
+		
+		@Override
+		protected void onProgressUpdate(Void... params) {
+			TodoListManagerActivity.this.adapter.notifyDataSetChanged();
+		}
+		
 	}
 
 }
